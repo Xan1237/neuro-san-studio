@@ -203,7 +203,7 @@ and specify which model to use in the `model_name` field:
 
 ```hocon
     "llm_config": {
-        "model_name": "gpt-4o",
+        "model_name": "gemini-1.5-flash",
     },
 ```
 

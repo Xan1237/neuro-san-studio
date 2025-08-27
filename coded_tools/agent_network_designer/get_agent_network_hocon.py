@@ -34,7 +34,7 @@ HOCON_HEADER_START = (
     '# so running the script from elsewhere may result in file not found errors.\n'
     'include "registries/aaosa.hocon"\n'
     '    "llm_config": {\n'
-    '        "model_name": "gpt-4o",\n'
+    '        "model_name": "gemini-1.5-flash",\n'
     "    },\n"
     '    "commondefs": {\n'
     '        "replacement_strings": {\n'

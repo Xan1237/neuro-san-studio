@@ -13,21 +13,22 @@
     # Eventually we might have a dictionary value with server specifications for each.
 
     # Industry-specific agent networks
-    "airline_policy.hocon": true,
-    "banking_ops.hocon": true,
-    "cpg_agents.hocon": true,
-    "insurance_underwriting_agents.hocon": true,
-    "intranet_agents_with_tools.hocon": true,
-    "retail_ops_and_customer_service.hocon": true,
-    "telco_network_support.hocon": true,
-    "therapy_vignette_supervisors.hocon": true,
-    "consumer_decision_assistant.hocon": true,
+    "airline_policy.hocon": false,
+    "banking_ops.hocon": false,
+    "cpg_agents.hocon": false,
+    "insurance_underwriting_agents.hocon": false,
+    "intranet_agents_with_tools.hocon": false,
+    "carloan.hocon": true,
+    "retail_ops_and_customer_service.hocon": false,
+    "telco_network_support.hocon": false,
+    "therapy_vignette_supervisors.hocon": false,
+    "consumer_decision_assistant.hocon": false,
     # The following agent networks are used as sub-networkds by consumer_decision_assistant.hocon
-    "airbnb.hocon": true,
-    "expedia.hocon": true,
-    "macys.hocon": true,
-    "carmax.hocon": true,
-    "booking.hocon": true,
-    "website_search.hocon": true,
-    "LinkedInJobSeekerSupportNetwork.hocon": true
+    "airbnb.hocon": false,
+    "expedia.hocon": false,
+    "macys.hocon": false,
+    "carmax.hocon": false,
+    "booking.hocon": false,
+    "website_search.hocon": false,
+    "LinkedInJobSeekerSupportNetwork.hocon": false
 }

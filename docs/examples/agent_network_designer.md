@@ -50,7 +50,7 @@ Here is the full agent network definition in HOCON format for the UNHCR back-off
 
 {
     "llm_config": {
-        "model_name": "gpt-4o",
+        "model_name": "gemini-1.5-flash",
     },
     "commondefs": {
         "replacement_strings": {
