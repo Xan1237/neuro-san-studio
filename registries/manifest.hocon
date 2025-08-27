@@ -23,7 +23,7 @@
     "music_nerd_pro_sly_local.hocon": false,
     "hello_world.hocon": false,
     "advanced_calculator.hocon": false,
-    "smart_home.hocon": false,
+    "smart_home.hocon": true,
 
     # Tool integration examples
 
@@ -59,6 +59,22 @@
     "agentic_rag.hocon": false,
     "kwik_agents.hocon": false,
 
+    # Requirement to use this agent network:
+    # - langchain-openai >= 0.3.26
+    # - OPENAI_API_KEY
+    # See https://platform.openai.com/docs/guides/tools?api-mode=responses and
+    # https://python.langchain.com/docs/integrations/chat/openai/#responses-api
+    "openai_web_search.hocon": true,
+    "openai_code_interpreter.hocon": true,
+
+    # Requirement to use this agent network:
+    # - langchain-anthropic>=0.3.13
+    # - ANTHROPIC_API_KEY
+    # See https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview and
+    # https://python.langchain.com/docs/integrations/chat/anthropic/#built-in-tools
+    "anthropic_web_search.hocon": true,
+    "anthropic_code_execution.hocon": true,
+
     # To use this agent network, start by installing the required package:
     #     pip install atlassian-python-api
     #
@@ -87,6 +103,14 @@
     # Once you've downloaded the credentials.json file and put it in the top level of this repo,
     # you can start using the agent network.
     "gmail.hocon": false,
+
+    # To use this agent network, start by installing the required package:
+    #     pip install wikipedia
+    "wikipedia_rag.hocon": false,
+
+    # To use this agent network, start by installing the required package:
+    #     pip install arxiv
+    "arxiv_rag.hocon": false,
 
 
     # Use cases
@@ -147,4 +171,5 @@
     #   For example, you can run:
     #     python -m run --server-grpc-port 30012 --server-http-port 8081 --nsflow-port 4174
     "agent_network_architect.hocon": false,
+    "news_sentiment_analysis.hocon": false,
 }

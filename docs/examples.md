@@ -5,37 +5,49 @@ Here are a few examples ordered by level of complexity.
 <!-- TOC -->
 
 * [Examples](#examples)
-    * [🔰 Basic Examples](#-basic-examples)
-        * [Music Nerd](#music-nerd)
-        * [Music Nerd Pro](#music-nerd-pro)
-        * [Music Nerd Local](#music-nerd-local)
-        * [Music Nerd Pro Local](#music-nerd-pro-local)
-        * [Music Nerd Pro Sly](#music-nerd-pro-sly)
-        * [Music Nerd Pro Sly Local](#music-nerd-pro-sly-local)
-    * [🧰 Tool Integration Examples](#-tool-integration-examples)
-        * [Gmail Assistant](#gmail-assistant)
-        * [Agent Network HTML Creator](#agent-network-html-creator)
-        * [Agentforce](#agentforce)
-        * [Agentspace](#agentspace)
-        * [MCP BMI STREAMABLE HTTP](#mcp-bmi-streamable-http)
-        * [A2A RESEARCH REPORT](#a2a-research-report)
-        * [PDF RAG Assistant](#pdf-rag-assistant)
-        * [Confluence RAG Assistant](#confluence-rag-assistant)
-        * [Agentic RAG Assistant](#agentic-rag-assistant)
-    * [🏢 Industry-Specific Examples](#-industry-specific-examples)
-        * [Intranet Agents](#intranet-agents)
-        * [Intranet Agents With Tools](#intranet-agents-with-tools)
-        * [Airline Policy 360 Assistant](#airline-policy-360-assistant)
-        * [Real Estate Agent](#real-estate-agent)
-        * [Consumer Decision Assistant Agents](#consumer-decision-assistant-agents)
-        * [Therapy Vignette Supervision](#therapy-vignette-supervision)
-    * [🧪 Experimental and Research](#-experimental-and-research)
-        * [Agent Network Designer](#agent-network-designer)
-        * [Agent Network Architect](#agent-network-architect)
-        * [KWIK Agents](#kwik-agents)
-        * [CRUSE](#cruse)
-        * [Conscious Assistant](#conscious-assistant)
-        * [Log Analyzer](#log-analyzer)
+  * [🔰 Basic Examples](#-basic-examples)
+    * [Music Nerd](#music-nerd)
+    * [Music Nerd Pro](#music-nerd-pro)
+    * [Music Nerd Local](#music-nerd-local)
+    * [Music Nerd Pro Local](#music-nerd-pro-local)
+    * [Music Nerd Pro Sly](#music-nerd-pro-sly)
+    * [Music Nerd Pro Sly Local](#music-nerd-pro-sly-local)
+    * [Coffee Finder](#coffee-finder)
+  * [🧰 Tool Integration Examples](#-tool-integration-examples)
+    * [Anthropic Code Execution](#anthropic-code-execution)
+    * [Anthropic Web Search](#anthropic-web-search)
+    * [OpenAI Code Interpreter](#openai-code-interpreter)
+    * [OpenAI Web Search](#openai-web-search)
+    * [Gmail Assistant](#gmail-assistant)
+    * [Agent Network HTML Creator](#agent-network-html-creator)
+    * [Agentforce](#agentforce)
+    * [Agentspace](#agentspace)
+    * [MCP BMI STREAMABLE HTTP](#mcp-bmi-streamable-http)
+    * [A2A RESEARCH REPORT](#a2a-research-report)
+    * [PDF RAG Assistant](#pdf-rag-assistant)
+    * [Confluence RAG Assistant](#confluence-rag-assistant)
+    * [Agentic RAG Assistant](#agentic-rag-assistant)
+    * [Wikipedia RAG Assistant](#wikipedia-rag-assistant)
+    * [ArXiv RAG Assistant](#arxiv-rag-assistant)
+  * [🏢 Industry-Specific Examples](#-industry-specific-examples)
+    * [Intranet Agents](#intranet-agents)
+    * [Intranet Agents With Tools](#intranet-agents-with-tools)
+    * [Airline Policy 360 Assistant](#airline-policy-360-assistant)
+    * [Real Estate Agent](#real-estate-agent)
+    * [Consumer Decision Assistant Agents](#consumer-decision-assistant-agents)
+    * [Therapy Vignette Supervision](#therapy-vignette-supervision)
+    * [Banking Operations](#banking-operations)
+    * [Retail Operations and Customer Service Assistant](#retail-operations-and-customer-service-assistant)
+    * [Insurance Underwriting Agents](#insurance-underwriting-agents)
+    * [Sentiment Analysis of News Sources](#sentiment-analysis-of-news-sources)
+  * [🧪 Experimental and Research](#-experimental-and-research)
+    * [Agent Network Designer](#agent-network-designer)
+    * [Agent Network Architect](#agent-network-architect)
+    * [KWIK Agents](#kwik-agents)
+    * [CRUSE](#cruse)
+    * [Conscious Assistant](#conscious-assistant)
+    * [Log Analyzer](#log-analyzer)
+    * [WWAW](#wwaw)
 
 <!-- TOC -->
 
@@ -85,9 +97,62 @@ a **tool-calling** LLM that runs locally with Ollama.
 
 **Tags:** `tool`, `sly_data`, `llm_config`
 
+### Music Nerd LLM Fallbacks
+
+[Music Nerd LLM Fallbacks](./examples/music_nerd_llm_fallbacks.md) is a copy of
+[Music Nerd Pro](./examples/music_nerd_pro.md) that uses a `fallbacks` list in
+its `llm_config` to automatically try another LLM config if the first one fails.
+
+**Tags:** `llm_config` `llm_fallbacks`
+
+### Coffee Finder
+
+[Coffee Finder](./examples/coffee_finder.md) is an agent network that helps
+users find coffee at any time of the day. It shows how multiple agents can
+provide the same service and how the AAOSA instructions can be used to choose
+the best option depending on the context.
+
+**Tags:** `AAOSA`
+
 ## 🧰 Tool Integration Examples
 
 Examples that demonstrate how to integrate external tools and services.
+
+### Anthropic Code Execution
+
+[Code Execution Assistant](./examples/anthropic_code_execution.md) is a task-oriented agentic system designed to help
+users execute code and perform computational tasks efficiently. It leverages Anthropic's built-in code execution tool
+through a specialized toolkit, providing users with the ability to run Python code, generate visualizations,
+perform data analysis, and create files through natural language commands.
+
+**Tags:** `tool`, `Anthropic`
+
+### Anthropic Web Search
+
+[Anthropic Web Search](./examples/anthropic_web_search.md) is a task-oriented agentic system designed to help users
+search and retrieve information from the web efficiently. It leverages Anthropic's built-in web search tool through
+a specialized toolkit, providing users with accurate, up-to-date information from across the internet through
+natural language queries.
+
+**Tags:** `tool`, `Anthropic`
+
+### OpenAI Code Interpreter
+
+[OpenAI Code Interpreter](./examples/openai_code_interpreter.md) is a task-oriented agentic system designed to help
+users execute code and perform computational tasks efficiently. It leverages OpenAI's built-in code interpreter tool
+through a specialized toolkit, providing users with the ability to run Python code, generate visualizations,
+perform data analysis, and create computational solutions through natural language commands.
+
+**Tags:** `tool`, `OpenAI`
+
+### OpenAI Web Search
+
+[OpenAI Web Search](./examples/openai_web_search.md) is a task-oriented agentic system designed to help users search
+and retrieve information from the web efficiently. It leverages OpenAI's built-in web search tool through a specialized
+toolkit, providing users with accurate, up-to-date information from across the internet through
+natural language queries.
+
+**Tags:** `tool`, `OpenAI`
 
 ### Gmail Assistant
 
@@ -156,6 +221,20 @@ to specialized tools and compiles responses into clear, helpful answers.
 
 **Tags:** `tool`, `API`, `RAG`
 
+### Wikipedia RAG Assistant
+
+[Wikipedia RAG Assistant](./examples/wikipedia_rag.md) answers user queries by searching Wikipedia, fetching the most
+relevant articles, and synthesizing their content into accurate, detailed answers (no vector store required).
+
+**Tags:** `tool`, `RAG`
+
+### ArXiv RAG Assistant
+
+[ArXiv RAG Assistant](./examples/arxiv_rag.md) is an agent-based system that queries arXiv, pulls the best-matching
+research papers (abstracts or full text) and produces accurate responses to user queries (no vector store needed).
+
+**Tags:** `tool`, `RAG`
+
 ## 🏢 Industry-Specific Examples
 
 Examples tailored to specific industry applications.
@@ -207,6 +286,41 @@ opinion.
 
 **Tags:** `AAOSA`
 
+### Banking Operations
+
+[Banking Operations](examples/banking_ops.md) is a multi-agent system that simulates an end-to-end banking support
+framework covering account servicing, fraud prevention, credit underwriting, and wealth management. Specialized agents
+collaborate to deliver bank policy-compliant responses to users, with the system currently operating in demo mode.
+
+**Tags:** `AAOSA`
+
+### Retail Operations and Customer Service Assistant
+
+[Retail Operations and Customer Service Assistant](examples/retail_ops_and_customer_service.md) is a modular,
+multi-agent system that simulates a real-world helpdesk, automating the management of orders, returns, refunds, and
+product queries while ensuring compliance with company policies. It uses domain-specific task delegation across
+specialized agents, each handling a particular query or retail operation, and is currently in demo mode.
+
+**Tags:** `AAOSA`
+
+### Insurance Underwriting Agents
+
+[Insurance Underwriting Agent](examples/insurance_underwriting_agents.md) is a hierarchical, multi-agent system that
+automates Hartford’s business insurance workflows, replicating a real-world operations desk. It seamlessly coordinates
+information flow across multiple agents (teams), managing underwriting and claims processes. Key tasks include ACORD form
+validation, risk assessment, underwriting decisions, and claims intake. The system is currently in demo mode.
+
+**Tags:** `AAOSA`
+
+### Sentiment Analysis of News Sources
+
+[Sentiment Analysis of News Sources](examples/news_sentiment_analysis.md) is a multi-agent system that analyzes
+news coverage from The New York Times, The Guardian, and Al Jazeera to reveal emotional framing across geopolitical
+perspectives. Using keyword-driven sentiment analysis, it automates news retrieval, sentiment scoring, and report
+generation to provide concise, data-backed insights on sentiment polarity, tone variations, and media bias.
+
+**Tags:** `tool`, `API`, `AAOSA`
+
 ## 🧪 Experimental and Research
 
 Cutting-edge examples for research and experimentation.
@@ -255,3 +369,9 @@ serves as a good example of how to run an agent permanently.
 good example of how to run an agent network on an agent network log for various validations.
 
 **Tags:** `AAOSA`, `app`
+
+### WWAW
+
+[wwaw.md](examples/wwaw.md) stands for worldwide agentic web, and is an app to generate an arbitrarily sized agent
+network using the web as the template for the agent connections and content.
+**Tags:** `scale`, `app`

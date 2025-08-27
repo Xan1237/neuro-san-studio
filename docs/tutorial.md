@@ -30,9 +30,10 @@ single command.
         * [LLM Config](#llm-config)
             * [Notes on `llm_config`:](#notes-on-llm_config)
             * [Running the multi-agent network:](#running-the-multi-agent-network)
-    * [6. How to Switch LLMs Using the HOCON File](#6-how-to-switch-llms-using-the-hocon-file)
-        * [Setting Up Ollama Locally](#setting-up-ollama-locally)
-        * [Adding Endpoint URL for Any Cloud-Hosted LLM](#adding-endpoint-url-for-any-cloud-hosted-llm)
+    * [6. How to Switch LLMs in the Agent Network](#6-how-to-switch-llms-in-the-agent-network)
+        * [Available Models and Preset Parameters](#available-models-and-preset-parameters)
+        * [API Keys & Environment Variables](#api-keys--environment-variables)
+        * [Using Local LLMs via Ollama](#using-local-llms-via-ollama)
     * [7. How to use tools in Neuro-San](#7-how-to-use-tools-in-neuro-san)
         * [Custom Tools](#custom-tools)
             * [Defining Functions in Agent Network (HOCON)](#defining-functions-in-agent-network-hocon)
@@ -423,53 +424,57 @@ the **CalculatorTool**. The final answer is then relayed back to the user.
 
 ---
 
-## 6. How to Switch LLMs Using the HOCON File
+## 6. How to Switch LLMs in the Agent Network
 
-Because **Neuro AI Multi-Agent Accelerator** uses `neuro-san`, it is LLM-agnostic, you can switch to different model
-providers by changing the `llm_config` in your `.hocon` file.
-
-```hocon
-"llm_config": {
-    "model_name": "llama3.1",
-    # Additional fields like endpoint_url for remote inference servers
-}
-```
-
-**Note**: The `base_url` config parameter is not needed when running `ollama` on a local machine or a laptop.
-
-### Setting Up Ollama Locally
-
-Ollama is a local LLM runner for Mac (and also works on Windows via Docker or other means).
-
-1. Download and Install Ollama (follow official instructions from [ollama.com](https://ollama.com/)).
-2. Start an Ollama instance listening to a local port (e.g., 11434).
-
-On macOS, that might look like:
-
-```bash
-ollama serve --port 11434
-```
-
-On Windows, you might use Docker:
-Refer to the [docker hub ollama documentation](https://hub.docker.com/r/ollama/ollama) on how to set up a docker instance.
-
-### Adding Endpoint URL for Any Cloud-Hosted LLM
-
-To direct the calls to your local Ollama, or a cloud-hosted model endpoint, add:
+Because **Neuro AI Multi-Agent Accelerator** uses `neuro-san`, it is LLM-agnostic, you can switch to different models or
+providers by changing the `model_name` of `llm_config` in your `.hocon` file.
 
 ```hocon
 "llm_config": {
-    "model_name": "llama3.1",
-    "base_url": "http://localhost:11434/api/chat" # replace the url in base_url with your actual url
+    "model_name": "<your_model>",
+    # Replace with the name of the model you want to use
+    # You can also specify other fields, like temperature, max_tokens, etc.
 }
 ```
 
-If you use other providers (e.g., Anthropic, OpenAI, Azure, etc.), simply adjust these values to match the respective
-endpoints and model names. Be sure to set any necessary environment variables (e.g., `OPENAI_API_KEY`,
-`ANTHROPIC_API_KEY`, `ANTHROPIC_API_URL`, `AZURE_OPENAI_ENDPOINT`, etc.).
+### Available Models and Preset Parameters
 
-**Note**: Please check [langchain api reference](https://python.langchain.com/api_reference/reference.html) for
-supported parameters.
+All available models and their corresponding providers are defined in the
+[default LLM info file](https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/llms/default_llm_info.hocon).
+
+Each entry includes **preset parameters** that determine how the model should be used,
+such as token limits or default temperature values.
+
+If needed, you can **override these preset values** directly in your `llm_config`.
+
+For more information on customizing or extending available models, refer to:
+* [Using Custom or Non-Default LLMs](user_guide.md#using-custom-or-non-default-llms)
+* [LangChain Chat Model Integration](https://python.langchain.com/docs/integrations/chat/)
+for provider-specific parameter options
+
+### API Keys & Environment Variables
+
+For most cloud-based providers (e.g. OpenAI, Anthropic, Azure),
+you’ll need to set the appropriate environment variables in your shell or .env file.
+Common examples include:
+
+* `OPENAI_API_KEY`
+* `ANTHROPIC_API_KEY`
+* `AZURE_OPENAI_ENDPOINT`
+
+More details can be found in the following resources:
+
+* [User Guide: LLM Configuration](user_guide.md#llm-configuration)
+* [API Key Documentation](api_key.md)
+* [.env.example](../.env.example)
+* [LLM Info HOCON Reference Guide](https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/llm_info_hocon_reference.md)
+* [Agent HOCON Reference Guide](https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/agent_hocon_reference.md)
+
+### Using Local LLMs via Ollama
+
+To use a locally hosted LLM with Ollama, follow the instructions in the [Ollama section](user_guide.md#ollama)
+of the user guide.
+These models can be configured in the same way, provided they are correctly installed and running locally.
 
 ---
 
@@ -481,7 +486,7 @@ Neuro-San supports two types of tools that agents can call during execution:
 and integrate it with the agent.
 2. **Prebuilt Tools (via toolbox)** – Tools that are already implemented and configured for reuse. These include:
 
-LangChain’s `BaseTool` implementations (e.g., `bing_search`, `requests_get`)
+LangChain’s `BaseTool` implementations (e.g., `tavily_search`, `requests_get`)
 
 Shared `CodedTool` implementations that are registered in the toolbox config file
 
@@ -664,7 +669,7 @@ These tools are already integrated and can be plugged into agents directly via c
 
 Toolbox tools come in two forms:
 
-* LangChain Tools – Built-in tools like bing_search, requests_get, etc., implemented using LangChain’s BaseTool.
+* LangChain Tools – Built-in tools like tavily_search, requests_get, etc., implemented using LangChain’s BaseTool.
 
 * Shared Coded Tools – Predefined tools using the CodedTool interface (Python classes) that are already available and
 registered in your Toolbox config.
@@ -680,7 +685,7 @@ To use any tool from the Toolbox, simply reference it in the toolbox field of yo
 {
   "name": "search_agent",
   "instructions": "Use web search to find information for the user.",
-  "toolbox": "bing_search"
+  "toolbox": "tavily_search"
 }
 ```
 
@@ -697,11 +702,11 @@ don’t need to redefine it in the agent network — just reference it by name.
 ##### LangChain Example
 
 ```json
-"bing_search": {
-  "class": "langchain_community.tools.bing_search.BingSearchResults",
+"tavily_search": {
+  "class": "langchain_community.tools.tavily_search.TavilySearchResults",
   "args": {
     "api_wrapper": {
-      "class": "langchain_community.utilities.BingSearchAPIWrapper"
+      "class": "langchain_community.utilities.tavily_search.TavilySearchAPIWrapper"
     }
   }
 }
@@ -728,11 +733,27 @@ don’t need to redefine it in the agent network — just reference it by name.
 
 If you want to add your own tools to the Toolbox (so they can be reused easily):
 
-* For coded tools, create your tool using the CodedTool interface in Python.
+* **For coded tools**: Implement your tool in Python using the `CodedTool` interface.
 
-* Add an entry to your toolbox config file similar to examples in the previous section.
+* **Add your tool to a config file**: Define an entry in your custom toolbox info file,
+following the structure shown in the previous examples.
 
-* Set the `AGENT_TOOLBOX_INFO_FILE` environment variable to point to this config.
+* **Register the config file** by one of the following methods:
+
+    * Set the `toolbox_info_file` key
+        > **Note:** The `agent_toolbox_info_file` key has been **deprecated as of version 0.5.46**.  
+        > Please use `toolbox_info_file` instead.  
+        > `agent_toolbox_info_file` will remain supported until `neuro-san==0.6.0`.
+
+    * Use the `AGENT_TOOLBOX_INFO_FILE` environment variable
+
+This setup allows you to introduce custom tools without modifying the built-in toolbox definitions.
+
+See also
+
+* [Toolbox](user_guide.md#toolbox) section of the user guide
+* [Toolbox Info HOCON File Reference](
+    https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/toolbox_info_hocon_reference.md) documentation
 
 ---
 

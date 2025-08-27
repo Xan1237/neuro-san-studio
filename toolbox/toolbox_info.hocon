@@ -14,6 +14,81 @@
 # https://github.com/cognizant-ai-lab/neuro-san-studio/blob/main/docs/user_guide.md#toolbox
 
 {
+
+    # ---------- Anthropic Tools ----------
+
+    # Requirement to use this agent network:
+    # - langchain-anthropic>=0.3.13
+    # - ANTHROPIC_API_KEY
+    # See https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview and
+    # https://python.langchain.com/docs/integrations/chat/anthropic/#built-in-tools
+
+    "anthropic_search": {
+        "class": "anthropic_web_search.AnthropicWebSearch",
+        "description": "Tool that provides web search capabilities",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The text to search in."
+                },
+            },
+            "required": ["query"]
+        }
+    },
+    "anthropic_code_execution": {
+        "class": "anthropic_code_execution.AnthropicCodeExecution",
+        "description": "Executes Python code and performs tasks such as plotting, data analysis, or math using the Anthropic Code Execution tool.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "A natural language instruction or request to be executed by the code interpreter (e.g., a math problem, plotting instruction, or data transformation)."
+                },
+            },
+            "required": ["query"]
+        }
+    },
+
+    # ---------- Agent Network Tools ----------
+
+    "call_agent": {
+        "class": "call_agent.CallAgent",
+        "description": "Call the agent to respond to inquiry.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "agent_name": {
+                    "type": "string",
+                    "description": "Name of the agent to call. Do not include file extension such as '.hocon' in the name."
+                },
+                "inquiry": {
+                    "type": "string",
+                    "description": "The inquiry"
+                },
+            },
+            "required": ["inquiry"]
+        } 
+    },
+
+    # This tool uses pyvis to generate a html, and open it in chrome browser.
+    "agent_network_html_generator": {
+        "class": "agent_network_html_generator.AgentNetworkHtmlGenerator"
+        "description": "Generate a html file from agent network hocon",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "agent_name": {
+                    "type": "string",
+                    "description": "Name of the agent to create html for. Do not include file extension such as '.hocon' in the name."
+                }
+            },
+            "required": ["agent_name"]
+        }
+    },
+
     # ---------- Gmail Tools ----------
     "gmail_toolkit": {
         # This is the class of the tool to use
@@ -77,8 +152,54 @@
             # The other arguments are optional
         }
     },
+
+    # ---------- OpenAI Tools ----------
+
+    # Requirement to use these tools:
+    # - langchain-openai >= 0.3.26
+    # - OPENAI_API_KEY
+    # See https://platform.openai.com/docs/guides/tools?api-mode=responses and
+    # https://python.langchain.com/docs/integrations/chat/openai/#responses-api
+
+    "openai_search": {
+        "class": "openai_web_search.OpenAIWebSearch",
+        "description": "Tool that provides web search capabilities",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The text to search in."
+                },
+            },
+            "required": ["query"]
+        }
+    },
+    "openai_code_interpreter": {
+        "class": "openai_code_interpreter.OpenAICodeInterpreter",
+        "description": "Executes Python code and performs tasks such as plotting, data analysis, or math using the OpenAI Code Interpreter tool.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "A natural language instruction or request to be executed by the code interpreter (e.g., a math problem, plotting instruction, or data transformation)."
+                },
+            },
+            "required": ["query"]
+        }
+    },
         
     # ---------- RAG Tools ----------
+    #
+    # Supported Vector Store: In-Memory and PostgreSQL vector stores
+    #
+    # Prerequisites for PostgreSQL:
+    #   - Install Docker: https://www.docker.com/get-started/
+    #   - Install Python package: pip install langchain-postgres
+    #   - Set environment variables: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB
+    #   - Run: docker run --name pgvector-container -e POSTGRES_USER=<user> -e POSTGRES_PASSWORD=<password> -e POSTGRES_DB=<db_name> -p 6024:5432 -d pgvector/pgvector:pg16
+
 
     # To use this tool, start by installing the required package:
     #     pip install atlassian-python-api
@@ -103,42 +224,53 @@
         }      
     },
 
-    # ---------- Agent Network Tools ----------
-
-    "call_agent": {
-        "class": "call_agent.CallAgent",
-        "description": "Call the agent to response to inquiry.",
+    "pdf_rag": {
+        # This is a coded tool for RAG on PDF files.
+        "class": "pdf_rag.PdfRag", 
+        "description": "Retrieve information from the given PDF files",
         "parameters": {
             "type": "object",
             "properties": {
-                "agent_name": {
+                "query": {
                     "type": "string",
-                    "description": "Name of the agent to call. Do not include file extension such as '.hocon' in the name."
-                },
-                "inquiry": {
-                    "type": "string",
-                    "description": "The inquiry"
-                },
-            },
-            "required": ["inquiry"]
-        } 
-    },
-
-    # This tool uses pyvis to generate a html, and open it in chrome browser.
-    "agent_network_html_generator": {
-        "class": "agent_network_html_generator.AgentNetworkHtmlGenerator"
-        "description": "Generate a html file from agent network hocon",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "agent_name": {
-                    "type": "string",
-                    "description": "Name of the agent to create html for. Do not include file extension such as '.hocon' in the name."
+                    "description": "Query for retrieval"
                 }
             },
-            "required": ["agent_name"]
+            "required": ["query"]
         }
     },
+
+    "wikipedia_rag": {
+        # This is a coded tool for RAG on Wikipedia pages.
+        "class": "wikipedia_rag.WikipediaRag",
+        "description": "Retrieve information from Wikipedia and answer a query using RAG.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Query for retrieval"
+                }
+            },
+            "required": ["query"]
+        }
+    },
+    
+    "arxiv_rag": {
+        # This is a coded tool for RAG on Arxiv Articles.
+        "class": "arxiv_rag.ArxivRag",
+        "description": "Retrieve information from arXiv and answer a query using RAG.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Retrieval question to answer over arXiv documents"
+                },
+            },
+            "required": ["query"]
+        }
+    }
 
     # ---------- Search Tools ----------
 
@@ -160,7 +292,7 @@
             },
             "required": ["search_terms"]
         }
-    }
+    },
 
     # To use this search tool, you must
     #

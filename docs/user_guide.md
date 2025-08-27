@@ -3,36 +3,47 @@
 <!-- TOC -->
 
 * [User guide](#user-guide)
-    * [Simple agent network](#simple-agent-network)
-    * [Hocon files](#hocon-files)
-        * [Import and Substitution](#import-and-substitution)
-        * [Manifest](#manifest)
-        * [Agent network](#agent-network)
-            * [Agent specifications](#agent-specifications)
-            * [Tool specifications](#tool-specifications)
-            * [LLM specifications](#llm-specifications)
-    * [LLM configuration](#llm-configuration)
-        * [OpenAI](#openai)
-        * [AzureOpenAI](#azureopenai)
-        * [Anthropic](#anthropic)
-        * [Gemini](#gemini)
-        * [Ollama](#ollama)
-    * [Multi-agent networks](#multi-agent-networks)
-    * [Coded tools](#coded-tools)
-        * [Simple tool](#simple-tool)
-        * [API calling tool](#api-calling-tool)
-        * [Sly data](#sly-data)
-    * [Toolbox](#toolbox)
-        * [Default tools in toolbox](#default-tools-in-toolbox)
-            * [Langchain tools](#langchain-tools-in-toolbox)
-            * [Coded tools](#coded-tools-in-toolbox)
-        * [Usage in agent network config](#usage-in-agent-network-config)
-        * [Adding tools in toolbox](#adding-tools-in-toolbox)
-    * [Logging and debugging](#logging-and-debugging)
-    * [Advanced](#advanced)
-        * [Subnetworks](#subnetworks)
-        * [AAOSA](#aaosa)
-    * [Connect with other agent frameworks](#connect-with-other-agent-frameworks)
+  * [Simple agent network](#simple-agent-network)
+  * [Hocon files](#hocon-files)
+    * [Import and substitution](#import-and-substitution)
+    * [Manifest](#manifest)
+    * [Agent network](#agent-network)
+      * [Agent specifications](#agent-specifications)
+      * [Tool specifications](#tool-specifications)
+      * [LLM specifications](#llm-specifications)
+  * [LLM configuration](#llm-configuration)
+    * [OpenAI](#openai)
+    * [AzureOpenAI](#azureopenai)
+    * [Anthropic](#anthropic)
+    * [Bedrock](#bedrock)
+      * [Default Bedrock models](#default-bedrock-models)
+    * [Gemini](#gemini)
+    * [Ollama](#ollama)
+      * [Prerequisites](#prerequisites)
+      * [Configuration](#configuration)
+      * [Using Ollama in Docker or Remote Server](#using-ollama-in-docker-or-remote-server)
+      * [Example agent network](#example-agent-network)
+    * [See also](#see-also)
+  * [LLM Fallbacks](#llm-fallbacks)
+  * [Using custom or non-default LLMs](#using-custom-or-non-default-llms)
+    * [Using the `class` Key](#using-the-class-key)
+    * [Extending the default LLM info file](#extending-the-default-llm-info-file)
+      * [Registering custom LLM info file](#registering-custom-llm-info-file)
+  * [Coded tools](#coded-tools)
+    * [Simple tool](#simple-tool)
+    * [API calling tool](#api-calling-tool)
+    * [Sly data](#sly-data)
+  * [Toolbox](#toolbox)
+    * [Default tools in toolbox](#default-tools-in-toolbox)
+      * [Langchain tools in toolbox](#langchain-tools-in-toolbox)
+      * [Coded tools in toolbox](#coded-tools-in-toolbox)
+    * [Usage in agent network config](#usage-in-agent-network-config)
+    * [Adding tools in toolbox](#adding-tools-in-toolbox)
+  * [Logging and debugging](#logging-and-debugging)
+  * [Advanced](#advanced)
+    * [Subnetworks](#subnetworks)
+    * [AAOSA](#aaosa)
+  * [Connect with other agent frameworks](#connect-with-other-agent-frameworks)
 
 <!-- TOC -->
 
@@ -78,7 +89,7 @@ We'll describe the structure of agent networks' `.hocon` files in next section.
 
 ## Hocon files
 
-### Import and Substitution
+### Import and substitution
 
 HOCON files support importing content from other HOCON files using the unquoted keyword `include`, followed by
 whitespace and the path to the imported file as a quoted string:
@@ -148,32 +159,35 @@ For more details, please check the [Agent Manifest HOCON File Reference](
 #### Agent specifications
 
 <!-- pyml disable line-length -->
-| **Field**    | **Description**                                                                                                                              |
-|--------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| agent_name   | text handle for other agent specs and hosting system to refer to                                                                             |
-| function     | Open AI function spec (standard) that formally describes the various inputs that the agent expects                                           |
-| instructions | text that sets up the agent in detail for its task                                                                                           |
-| command      | text that sets the agent in motion after it receives all its inputs                                                                          |
-| tools        | optional list of references to other agents that this agent is allowed to call in the course of working through their input and instructions |
-| llm_config   | optional agent-specification for different LLMs for different purposes such as specialization, costs, etc.                                   |
+| **Field**    | **Description**                                                                                                                               |
+|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| name         | Text handle for other agent specs and hosting system to refer to.                                                                             |
+| function     | Open AI function spec (standard) that formally describes the various inputs that the agent expects.                                           |
+| instructions | Text that sets up the agent in detail for its task.                                                                                           |
+| command      | Text that sets the agent in motion after it receives all its inputs.                                                                          |
+| tools        | Optional list of references to other agents that this agent is allowed to call in the course of working through their input and instructions. |
+| llm_config   | Optional agent-specification for different LLMs for different purposes such as specialization, costs, etc.                                    |
 <!-- pyml enable line-length -->
 
 #### Tool specifications
 
-| **Field**     | **Description**                                                                                   |
-|---------------|---------------------------------------------------------------------------------------------------|
-| agent_name    | text handle for other agent specs to refer to                                                     |
-| function      | Open AI function spec (standard) that formally describes the various inputs that the tool expects |
-| method        | Code reference to the function that is to be invoked when the tool is called.                     |
+<!-- pyml disable line-length -->
+| **Field** | **Description**                                                                                                                                                                        |
+|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| name      | A unique identifier used to reference this tool in other agent specifications.                                                                                                         |
+| class     | A Python import path pointing to the class or function to invoke when the tool is called. Must follow the format `<module>.<Class>`. See [Coded tools](#coded-tools) for more details. |
+| function  | An OpenAI-compatible function schema that defines the expected input parameters for the tool specified in `class`.                                                                     |
+| toolbox   | The name of a predefined tool from the toolbox. If this field is set, you must not specify `class` or `function`.                                                                      |
+<!-- pyml enable line-length -->
 
 #### LLM specifications
 
 <!-- pyml disable line-length -->
-| **Field**   | **Description**                                                                                                                       |
-|-------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| model_name  | name of the model to use (i.e. “gpt-4o”, “claude-3-haiku”)                                                                            |
-| *_api_key   | api key value or environment variable to reference to allow access to the LLM provider if different from hosting environment default. |
-| temperature | optional level of randomness 0.0-1.0 to use for LLM results                                                                           |
+| **Field**   | **Description**                                                                                                                                |
+|-------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| model_name  | Name of the model to use (i.e. “gpt-4o”, “claude-3-haiku”).                                                                                    |
+| class       | Optional key for using custom models or providers. See [Using Custom or Non-Default LLMs](#using-custom-or-non-default-llms) for more details. |
+| temperature | Optional level of randomness 0.0-1.0 to use for LLM results.                                                                                   |
 <!-- pyml enable line-length -->
 
 See next section for more information about how to specify the LLM(s) to use.
@@ -183,18 +197,21 @@ For a full description of the fields, please refer to the [Agent Network HOCON F
 
 ## LLM configuration
 
-The `llm_config` section of the agent network configuration file specifies which LLM to use
-for the agents in this file. It can be specified:
+The `llm_config` section in the agent network configuration file defines which LLM should be used by the agents.
 
-* at the agent network level, to apply to all agents in this file
-* at the agent level, to apply to a specific agent
+You can specify it at two levels:
+* **Network-level**: Applies to all agents in the file.
+* **Agent-level**: Overrides the network-level configuration for a specific agent.
 
-For a full description of the fields, please refer to the [LLM config](
-    https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/agent_hocon_reference.md#llm_config) documentation.
+Neuro-SAN includes several predefined LLM providers and models. To use one of these, set the `model_name` key to
+the name of the model you want. In addition, model-specific parameters (such as `temperature`, `max_tokens`, etc.)
+can be set alongside `model_name`.
+A full list of available models and parameters can be found in the
+[default LLM info file](https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/llms/default_llm_info.hocon).
 
-For instructions about how to extend the default LLM descriptions shipped with the `neuro-san` library,
-please refer to the [LLM Info HOCON File Reference](
-    https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/llm_info_hocon_reference.md) documentation.
+> ⚠️ Different providers may require unique configurations or environment variables.
+
+The following sections provide details for each supported provider, including required parameters and setup instructions.
 
 ### OpenAI
 
@@ -204,33 +221,67 @@ and specify which model to use in the `model_name` field:
 ```hocon
     "llm_config": {
         "model_name": "gemini-1.5-flash",
-    },
+    }
 ```
 
 See [./examples/music_nerd.md](./examples/music_nerd.md) for an example.
 
 ### AzureOpenAI
 
-If you are using Azure OpenAI in your hocon file, make sure to **set `deployment_name`** in the `llm_config` to use the
-right model.
+To create an Azure OpenAI resource
 
-For example:
+* Go to Azure [portal](https://portal.azure.com/)
+* Click on `Create a resource`
+* Search for `Azure OpenAI`
+* Select `Azure OpenAI`, then click Create  
+
+After your Azure OpenAI resource is created, you must deploy a model
+
+* Go to Azure [portal](https://portal.azure.com/)
+* Under `Resources`, select your Azure OpenAI resource
+* Click on `Go to Azure AI Foundry portal`
+* Click on `Create new deployment`
+* Choose a model (e.g., `gpt-4o`), then pick a deployment name (e.g., `my-gpt4o`), and click `Deploy`
+* Find the `api_version` on the deployed model page (e.g., "2024-12-01-preview")
+* Optionally, set environment variables to the value of the deployment name and API version
+
+    export AZURE_OPENAI_DEPLOYMENT_NAME="Your deployment name"\
+    export OPENAI_API_VERSION="Your OpenAI API version"
+
+Finally, get your API key and endpoint
+
+* Go to Azure [portal](https://portal.azure.com/)
+* Under `Resources`, select your Azure OpenAI resource
+* Click on `Click here to view endpoints`
+* Optionally, set environment variables to the value of the API key and the endpoint
+
+    export AZURE_OPENAI_API_KEY="your Azure OpenAI API key"\
+    export AZURE_OPENAI_ENDPOINT="https://your_base_url.openai.azure.com"
+
+If you set the environment variables (recommended), the `llm_config` in your `.hocon` file would be as follows:
 
 ```hocon
-"llm_config": {
+    "llm_config": {
+        "model_name": "azure-gpt-4o",
+    }
+```
+
+If you did NOT set the environment variables, the `llm_config` in your `.hocon` file would be as follows:
+
+```hocon
+    "llm_config": {
         "model_name": "azure-gpt-4o",
         "openai_api_key": "your_api_key"
         "openai_api_version": "your_api_version",
         "azure_endpoint": "your_end_point",
         "deployment_name": "your_deployment_name"
-},
+    }
 ```
 
-You can set some of these as environment variables or add them in your .env file in order to use Azure OpenAI:  
-AZURE_OPENAI_ENDPOINT="https://your_base_url.openai.azure.com"
-OPENAI_API_VERSION="<your Azure OpenAI API version e.g. 2024-12-01-preview>"  
-AZURE_OPENAI_API_KEY="your Azure OpenAI API key"  
-
+> **Note**: Make sure your `model_name` starts with `azure-`. E.g., if you have a `gpt-4o` model,
+> your model name should be `azure-gpt-4o`, or else your agent network might think you are using
+> an OpenAI model (and not an Azure OpenAI model).
+>
 > **Tip**: While `OPENAI_API_KEY` may still be recognized for backward compatibility,
 > it's recommended to use `AZURE_OPENAI_API_KEY` to avoid conflicts and align with upcoming changes in LangChain.
 >
@@ -251,11 +302,93 @@ and specify which model to use in the `model_name` field of the `llm_config` sec
 
 ```hocon
     "llm_config": {
-        "model_name": "claude-3-5-haiku",
-    },
+        "model_name": "claude-3-7-sonnet",
+    }
 ```
 
 Here you can get an Anthropic API [key](https://console.anthropic.com/settings/keys)
+
+### Bedrock
+
+To use Amazon Bedrock models, you need valid AWS credentials. Below are the recommended ways to provide credentials,
+followed by guidance on how to select and configure models.
+
+1. Environment variables
+
+    You can set the following environment variables directly:
+
+   * `AWS_ACCESS_KEY_ID`
+
+   * `AWS_SECRET_ACCESS_KEY`
+
+   * `AWS_REGION` or `AWS_DEFAULT_REGION`
+
+    > Note: You may set `region_name` in the `llm_config` of the agent network HOCON file instead
+
+    This is sufficient if you only have **one AWS profile** or if you're certain these environment variables
+    correspond to the correct credentials.
+
+2. Named profile (**required for multiple profiles**)
+
+    If you have **multiple profiles** in `~/.aws/credentials` or `~/.aws/config`, it's recommended to explicitly set
+    the credentials_profile_name field to avoid ambiguity. This tells the system exactly which profile to use,
+    even if other credentials are present in the environment.
+
+    If `credentials_profile_name` is not specified in the `llm_config` of the HOCON file:
+
+   * The default profile will be used.
+
+   * On EC2 instance, credentials may be automatically loaded from the Instance Metadata Service (IMDS).
+
+    See the full AWS credential resolution order
+    [here](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
+
+   > Note: You may also need to specify environment variable `AWS_REGION` or the `region_name` field if
+region is not set in your AWS profile.
+
+3. Model selection
+
+    In your agent network HOCON file, specify the model name, the credentials profile, and the region (if needed):
+
+    ```hocon
+        "llm_config": {
+
+            # Bedrock documentation lists both model name and model ID.
+            # Use the **Model ID** as the value for "model_name".
+            "model_name": "bedrock-us-claude-3-7-sonnet",
+
+            # Optional if using env vars or default profile
+            "credentials_profile_name": "<profile_name>",
+
+            # Optional, but required if not defined in your profile config
+            # or with env var AWS_REGION or AWS_DEFAULT_REGION
+            "region_name": "us-west-2"
+        }
+    ```
+
+#### Default Bedrock models
+
+The default supported Bedrock model names currently include:
+
+* `bedrock-us-claude-opus-4`
+
+* `bedrock-us-claude-sonnet-4`
+
+* `bedrock-us-claude-3-7-sonnet`
+
+These models require access to one of the following AWS regions:
+
+* `us-east-1`
+
+* `us-east-2`
+
+* `us-west-2`
+
+If these are not available in your account, you can still use other Bedrock models available to you by
+[using the class key](#using-the-class-key).
+
+To find which models are available in your region, refer to the official AWS documentation:
+[Supported models – Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html)
 
 ### Gemini
 
@@ -265,36 +398,286 @@ and specify which model to use in the `model_name` field of the `llm_config` sec
 ```hocon
     "llm_config": {
         "model_name": "gemini-2.0-flash",
-    },
+    }
 ```
 
 You can get an Google Gemini API [key](https://ai.google.dev/gemini-api/docs/api-key) here.
 
 ### Ollama
 
-To use an LLM that runs locally with [Ollama](https://ollama.com/):
+This guide walks you through how to use a locally running LLM via [Ollama](https://github.com/ollama/ollama) in neuro-san.
 
-* Make sure the Ollama server is running
-* Make sure the model is downloaded, up to date and available in the Ollama server. For instance, `ollama run llama3.1`
-  will download the model and make it available for use. `ollama pull llama3.1`
-  will update the model to the latest version if needed.
-* If the agent network contains tools, make sure the model can call tools:
-  see [Ollama's documentation for models that support tools](https://ollama.com/search?c=tools)
-* Set the `class` and `model_name` fields in the `llm_config` section of the agent network configuration file:
+#### Prerequisites
+
+1. Download and Install Ollama
+
+   Download Ollama from [https://ollama.com](https://ollama.com) and install it on your machine.
+
+2. Download the Model
+
+   Use the following command to download and prepare the model:
+
+   ```bash
+    ollama run <model_name>      # replace <model_name> with your chosen model, e.g. qwen3:8b
+   ```
+
+   This ensures the model is downloaded and ready for use.
+
+3. Update the Model (Optional)
+
+    Ollama may release updates to a model (e.g., performance improvements) under the same model name.
+    To update the model to the latest version:
+
+    ```bash
+    ollama pull <model_name>     # replace <model_name> with your chosen model, e.g. qwen3:8b
+    ```
+
+4. Tool Calling Support
+
+    Ensure that the chosen model from Ollama supports tool use. You can check this in
+    [Ollama's searchable model directory](https://ollama.com/search?c=tools).
+
+5. Default LLM Info
+
+   To use the model in the `hocon` file, its name and relevant information, such as `max_token`, must be included in the
+   [default llm info file](https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/llms/default_llm_info.hocon).
+
+#### Configuration
+
+In your agent network hocon file, set the model name in the `llm_config` section. For example:
 
 ```hocon
     "llm_config": {
-        "class": "ollama",
-        "model_name": "llama3.1",
-    },
+        "model_name": "qwen3:8b",
+    }
 ```
 
-See [./examples/music_nerd_pro_local.md](./examples/music_nerd_pro_local.md) for an example.
+> Note: Some Ollama models include reasoning or "thinking" capabilities, which may make their responses more verbose.
+You can disable this behavior by adding `"reasoning": false` to `llm_config`.
+The default is `None`, which means the model will use its built-in default behavior. For more details,
+see [ChatOllama documentation](https://python.langchain.com/api_reference/ollama/chat_models/langchain_ollama.chat_models.ChatOllama.html#langchain_ollama.chat_models.ChatOllama.reasoning)
+
+Make sure the model you specify is already downloaded and available in the Ollama server.
+
+> Tip: Ollama models may respond slowly depending on model size and hardware.
+If you're encountering the default 120 seconds timeouts,
+you can increase it by setting the `max_execution_seconds` key in the agent network HOCON.
+See [agent network documentation](https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/agent_hocon_reference.md#max_execution_seconds)
+for more details.
+
+#### Using Ollama in Docker or Remote Server
+
+By default, Ollama listens on `http://127.0.0.1:11434`. However, if you are running Ollama inside Docker or
+on a remote machine, you need to explicitly set the `base_url` in `llm_config`.
+
+Here’s a ready-to-use `llm_config` block—just replace `<HOST>` with your setup:
+
+```hocon
+    "llm_config": {
+        "model_name": "qwen3:8b",
+        "base_url": "http://<HOST>:11434"
+    }
+```
+
+Examples:
+
+* Local (default): omit `base_url` or use `127.0.0.1`
+
+* Remote VM: `<HOST>` → `192.168.1.10`
+
+* Public DNS: `<HOST>` → `example.com`
+
+* Docker Compose: `<HOST>` → container name (ensure port `11434` is exposed)
+
+Just paste the block and update `<HOST>` to match your environment.
+
+> If you omit the port, and `base_url` starts with
+
+* `http` → port 80
+
+* `https` → port 443
+
+* neither → defaults to `http://<base_url>:11434`
+
+For more information on logic of parsing the `base_url` see [Ollama python SDK](https://github.com/ollama/ollama-python/blob/main/ollama/_client.py#L1173)
+
+#### Example agent network
+
+See the [./examples/music_nerd_pro_local.md](./examples/music_nerd_pro_local.md) for a complete working example.
 
 For more information about how to use Ollama with LangChain,
 see [this page](https://python.langchain.com/docs/integrations/chat/ollama/)
 
-## Multi-agent networks
+### See also
+
+For a full description of `llm_config`, please refer to the [LLM config](
+    https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/agent_hocon_reference.md#llm_config) documentation.
+
+## LLM Fallbacks
+
+Neuro-SAN supports LLM fallbacks, which allow you to specify a list of LLMs to use in case the primary LLM fails.
+In the `llm_config` block, put each LLM configuration in a `fallbacks` list.
+The list of LLM configs is tried in order until one succeeds.
+
+In this example, as seen in [./examples/music_nerd_llm_fallbacks.md](./examples/music_nerd_llm_fallbacks.md),
+the agent network will use OpenAI's `gpt-4o` model first,
+and if that fails (for example, due to rate limits or service outages),
+it will automatically fall back to Anthropic's `claude-3-7-sonnet` model:
+
+```hocon
+    "llm_config": {
+        "fallbacks": [
+            {
+                # Try OpenAI first
+                "model_name": "gpt-4o",
+            },
+            {
+                # Fall back to Anthropic Claude if OpenAI is unavailable.
+                "model_name": "claude-3-7-sonnet",
+            }
+        ]
+    },
+```
+
+## Using custom or non-default LLMs
+
+If your desired model is not listed in the
+[default llm info file](https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/llms/default_llm_info.hocon),
+you can use it in one of two ways:
+
+1. Use the `class` key directly in `llm_config`.
+
+2. Extend the default LLM info file with your own models and providers.
+
+### Using the `class` Key
+
+You can define an LLM directly in `llm_config` using the `class` key in two different scenarios:
+
+1. For supported providers
+
+    Set the `class` key to one of the values listed below, then specify the model using the `model_name` key.
+
+    | LLM Provider  | `class` Value   |
+    |:--------------|:----------------|
+    | Amazon Bedrock| `bedrock`       |
+    | Anthropic     | `anthropic`     |
+    | Azure OpenAI  | `azure_openai`  |
+    | Google Gemini | `gemini`        |
+    | NVidia        | `nvidia`        |
+    | Ollma         | `ollama`        |
+    | OpenAI        | `openai`        |
+
+    For example,
+
+    ```hocon
+        "llm_config": {
+            "class": "openai",
+            "model_name": "gpt-4.1-mini"
+        }
+    ```
+
+    <!-- markdownlint-disable MD013 -->
+    You may only provide parameters that are explicitly defined for that provider's class under the `classes.<class>.args`
+    section of  
+    [default llm info file](https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/llms/default_llm_info.hocon).
+    Unsupported parameters will be ignored.
+    <!-- markdownlint-enable MD013 -->
+
+2. For custom providers
+
+    Set the `class` key to the full Python path of the desired LangChain-compatible chat model class in the format:
+
+    ```hocon
+    <langchain_package>.<module>.<ChatModelClass>
+    ```
+
+    Then, provide any constructor arguments supported by that class in `llm_config`, such as
+
+    ```hocon
+        "llm_config": {
+            "class": "langchain_groq.chat_models.ChatGroq",
+            "model": "llama-3.1-8b-instant",
+            "temperature": 0.5
+        }
+    ```
+
+    For a full list of available chat model classes and their parameters, refer to:  
+    [LangChain Chat Integrations Documentation](https://python.langchain.com/docs/integrations/chat/)
+
+    > _Note: Neuro-SAN requires models that support **tool-calling** capabilities._
+
+### Extending the default LLM info file
+
+You can also add new models or providers by extending the
+[default llm info file](https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/llms/default_llm_info.hocon).
+
+1. Adding new models for supported providers
+
+    In your custom LLM info file, define the new model using a unique key (e.g. `gpt-4.1-mini`) and assign it a `class`
+    and `max_output_tokens`, such as:
+
+    ```hocon
+    "gpt-4.1-mini": {
+        "class": "openai",
+        "max_output_tokens": 32768
+    }
+    ```
+
+2. Adding custom providers
+
+* Adding model and class in llm info file
+
+    To support a custom provider, define the `class` value (e.g. `groq`), the model config, and also extend the
+    `classes` section:
+
+    ```hocon
+    "llama-3.3-70b-versatile": {
+        "class": "groq",
+        "max_output_tokens": 32768
+    }
+
+    "classes": {
+        "factories": [ "llm_info.groq_langchain_llm_factory.GroqLangChainLlmFactory" ]
+        "groq": {
+            "temperature": 0.5,
+            # Add arguments that you want to pass to the llm here.
+        }
+    }
+    ```
+
+    You can then reference the new provider class (`groq` in this case) in any `llm_config`.
+
+* Implementing a custom factory
+
+    You’ll need to implement a factory class that matches the path you specified in `factories`.
+
+    * Your factory must subclass [`LangChainLlmFactory`](https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/llms/langchain_llm_factory.py)
+    * It must implement a `create_base_chat_model(config, callbacks)` method
+        * `config` will contain:
+            * `model_name`
+            * `class` (e.g. `groq`)
+            * Parameters defined under `classes.groq
+        `callbacks` is typically used for token counting
+
+    <!-- markdownlint-disable MD013 -->
+    See
+    [`StandardLangChainLlmFactory`](https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/llms/standard_langchain_llm_factory.py)
+    as a reference implementation.
+    <!-- markdownlint-enable MD013 -->
+
+#### Registering custom LLM info file
+
+To load your own llm info file, you can specify its location using one of the following methods:
+
+* The `llm_info_file` key in your agent’s HOCON configuration
+    > **Note:** The `agent_llm_info_file` key has been **deprecated as of version 0.5.46**.  
+    > Please use `llm_info_file` instead.  
+    > `agent_llm_info_file` will remain supported until `neuro-san==0.6.0`.
+
+* The `AGENT_LLM_INFO_FILE` environment variable (fallback if the above is not set)
+
+For more information on llm info file, please see [LLM Info HOCON File Reference](
+    https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/llm_info_hocon_reference.md) documentation.
 
 ## Coded tools
 
@@ -398,7 +781,6 @@ integration of **LangChain** and **custom-coded tools** in a agent network confi
 
 | Name               | Description                                           |
 | ------------------ | ----------------------------------------------------- |
-| `bing_search`      | Web search via Bing. Requires `BingSearchAPIWrapper`. |
 | `tavily_search`    | Web search via Tavily. |
 | `requests_get`     | HTTP GET requests.                                    |
 | `requests_post`    | HTTP POST requests.                                   |
@@ -437,19 +819,19 @@ To use tools from toolbox in your agent network, simply call them with field `to
         Example:
 
         ```hocon
-            "bing_search": {
+            "tavily_search": {
                 # Fully qualified class path of the tool to be instantiated.
-                "class": "langchain_community.tools.bing_search.BingSearchResults",
+                "class": "langchain_community.tools.tavily_search.TavilySearchResults",
 
                 # (Optional) URL for reference documentation about this tool.
-                "base_tool_info_url": "https://python.langchain.com/docs/integrations/tools/bing_search/",
+                "base_tool_info_url": "https://python.langchain.com/docs/integrations/tools/tavily_search/",
 
                 # Arguments for the tool's constructor.
                 "args": {
                     "api_wrapper": {
                         # If the argument should be instantiated as a class, specify it using the "class" key.
                         # This tells the system to create an instance of the provided class instead of passing it as-is.
-                        "class": "langchain_community.utilities.BingSearchAPIWrapper"
+                        "class": "langchain_community.utilities.tavily_search.TavilySearchAPIWrapper"
                     },
                 }
             }
@@ -487,13 +869,18 @@ To use tools from toolbox in your agent network, simply call them with field `to
             }
         ```
 
-        For more examples, please see [https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/toolbox/toolbox_info.hocon](https://github.com/cognizant-ai-lab/neuro-san/blob/main/neuro_san/internals/run_context/langchain/toolbox/toolbox_info.hocon)
+        > Note: if environment variable `AGENT_TOOL_PATH` is not set, it defaults to the `coded_tool/` directory.
 
-3. Point to the config file by setting the environment variable `AGENT_TOOLBOX_INFO_FILE` to your custom config:
+3. Make your own toolbox info file available to the agent system in one of the following ways
 
-    ```bash
-    export AGENT_TOOLBOX_INFO_FILE=/path/to/my_toolbox_config.hocon
-    ```
+   * Define the `toolbox_info_file` key in your agent’s HOCON configuration (preferred method)
+       > **Note:** The `agent_toolbox_info_file` key has been **deprecated as of version 0.5.46**.  
+       > Please use `toolbox_info_file` instead.  
+       > `agent_toolbox_info_file` will remain supported until `neuro-san==0.6.0`.
+   * Set the `AGENT_TOOLBOX_INFO_FILE` environment variable as a fallback option
+
+For more information on toolbox, please see [Toolbox Info HOCON File Reference](
+    https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/toolbox_info_hocon_reference.md) documentation.
 
 ## Logging and debugging
 
@@ -529,10 +916,10 @@ Example:
 ```hocon
 {
     "name": "web_searcher",
-    "toolbox": "bing_search",
+    "toolbox": "tavily_search",
     "args": {
                 # This will override the number of search results to 3
-                "num_results": 3
+                "max_results": 3
             }
 }
 ```
