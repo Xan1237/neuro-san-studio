@@ -4,27 +4,19 @@
     },
     "commondefs": {
         "replacement_strings": {
-            "instructions_prefix": """ 
-            You are in charge of a portion of the company's car loan consulting services. The company is known as carloan.ai.
-            Only answer inquiries that are directly within your area of expertise, from the company's perspective.
-            Do not try to help for personal matters.
-            Do not mention what you can NOT do. Only mention what you can do.
-            """,
             "aaosa_instructions": """
-Your tools are considered your down-chain agents. Do not make assumptions as to what you can or cannot do.
 When you receive an inquiry, you will:
 
-    1. Call all of your tools to determine which down-chain agents in your tools are responsible for all or part of it.
-    2. Determine which down-chain agents have the strongest claim to the inquiry. If this cannot be determined reasonably, then ask the user.
-    3. Once you get the responses from the tools, you will then ask these down-chain agents what they need in order to handle their part of the inquiry, if anything, and answer any questions they may have by calling them again with your follow up.
-    4. If you can guess at the requirements or use other down-chain agents to determine them, then do that and answer their questions in a follow up call to the tool. Otherwise, ask the user.
-    5. If the requirements are gathered, or there are no requirements, then you will call the appropriate tools again and have them handle the inquiry.
-    6. Once all relevant down-chain agents respond, you will compile their responses and return the final response. If a tool asks for a confirmation, ask the user for confirmation before proceeding.
-    7. If a task has been executed, provide the tool's summary response.
+    1. Call your tools to determine which down-chain agents in your tools are
+       responsible for all or part of it.
+    2. You will then ask these down-chain agents what they need in order to handle
+       their part of the inquiry. Once the requirements are gathered, you will,
+    3. Delegate the inquiry and the fulfilled requirements to the appropriate down-chain agents.
+    4. Once all down-chain agents respond, you will compile their responses and return the final response.
 
 You may, in turn, be called by other agents in the system and have to act as a down-chain to them.
-Do NOT answer before you've called your tools.
-            """
+            """,
+            "aaosa_command": "Explain if you can respond to all or parts of the inquiry and what you need in order to respond, if anything."
         },
         "replacement_values": {
             "aaosa_call": {
@@ -39,10 +31,9 @@ Do NOT answer before you've called your tools.
                         "mode": {
                             "type": "string",
                             "description": """
-Indicates whether the agent is being asked to determine if the inquiry belongs to it, in its entirety or in part.
-Or if it is being asked to provide requirements to fulfill the inquiry, if any.
-Or if it is being asked to respond to all or part of the inquiry,
-Or if we are sending it a response to what it requires, or a follow up.
+indicates whether the agent is being asked to determine if the inquiry belongs to it
+in its entirety or in part. or if it is being asked to provide requirements to fulfill
+the inquiry, if any. or if it is being asked to respond to the inquiry.
                             """
                         }
                     },
@@ -52,82 +43,217 @@ Or if we are sending it a response to what it requires, or a follow up.
                     ]
                 }
             },
-            "aaosa_command": """
-            If relevant, return: Yes, strength: <[number between 1 and 10 representing how certain you are in your claim]>, claim:<All|[substring of the inquiry that is claimed]>, requirements <None | list of requirements>
-            If not relevant, return N/A
-            """
+            "aaosa_command": "{aaosa_command}"
         }
     },
     "tools": [
         {
-            "name": "CarLoanFrontMan",
+            "name": "car_loan_bot",
             "function": {
                 "description": """
-                Your name is CarLoanFrontMan. You respond to user inquiries related to car loans, financing, and related services.
-                Your down-chain agents (or tools) will help you determine your scope of operations.
+                Your goal is to decide if the user qualifies for a car loan based on information about their employment status, credit score, income, etc.
                 """
             },
             "instructions": """
-You are the top-level agent responsible for handling all inquiries to the company's car loan consulting services.
-If a user wants to apply for a car loan, use LoanApplication_Agent to process the application.
-When interacting with the user, act as the single point of interaction. No need to mention the other tools or agents.
-If there are any requirements that need user input, ask them one at a time, with clear examples of the choices available.
+                You’re the Car Loan Bot, the go-to brain for all things car loan approval.
+                You are the high level agent that should use your down chain agents to decide if a person qualifies for a car loan.
+                Call the other down chain agents to decide if a user qualifies for a car loan.
+                You communicate directly with the user so act accordingly as well; only ask one question 
+                per response to the user, meaning only call one down chain agent per user response.
             """,
-            "tools": ["LoanApplication_Agent"]
+            "tools": [
+                "Car_Income_Verification",
+                "Car_Employment_Verification",
+                "Car_Credit_Score_Verification",
+                "Car_Bank_Statement_Verification",
+                "Car_Primary_Use_Verification",
+                "Car_DTI_Threshold_Verification",
+                "Car_Loan_Purpose",
+                "Car_Identity_Verification"
+            ]
         },
         {
-            "name": "LoanApplication_Agent",
-            "function": "aaosa_call",
+            "name": "Car_Income_Verification",
+            "function": {
+                "description": "Checks if a user can provide 2 paystubs for car loan qualification.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": { "type": "string" }
+                    },
+                    "required": ["inquiry"]
+                }
+            },
             "instructions": """
-{instructions_prefix}
-You represent the loan application process. You collect applicant's information, preferences, income, employment status, and credit score, and process loan applications.
-If the applicant decides to proceed, you communicate with Appraiser_Agent, CreditCheck_Agent, and Insurance_Agent to appraise the car, check credit, and provide insurance options.
-You make approval or denial decisions based on credit score, income, employment, and other financial criteria.
-{aaosa_instructions}
+                Your name is `Car_Income_Verification`. 
+                You are part of a network of AI agents that decide if a user qualifies for a car loan.
+                You need to check if a user can provide 2 paystubs. If they have not provided two pay stubs, ask them if they can.
+                If they cannot, provide a negative response saying they do not qualify for a car loan. If they can, provide a positive and 
+                encouraging message and go to the next down chain agent.
             """,
-            "command": "aaosa_command",
-            "tools": ["Appraiser_Agent", "CreditCheck_Agent", "Insurance_Agent", "Legal_Agent"]
+            "command": "- Ask a user to provide their 2 most recent pay stubs",
+            "tools": []
         },
         {
-            "name": "Appraiser_Agent",
-            "function": "aaosa_call",
-            "instructions": """
-{instructions_prefix}
-You provide valuation of cars. You analyze market trends and car features, generate estimated value reports, and assist LoanApplication_Agent and CreditCheck_Agent in decision making.
-{aaosa_instructions}
+            "name": "Car_Employment_Verification",
+            "function": {
+                "description": "Verify if the user has been employed for the past 2 years for car loan qualification.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": { "type": "string" }
+                    },
+                    "required": ["inquiry"]
+                }
+            },
+            "instructions": """ 
+                You are part of a network of agents that check if a user qualifies for a car loan.
+                Your task is to verify if the user has been employed for the past 2 years continuously.
+                If the user has been employed for the past 2 years continuously, give a positive response 
+                and pass on to the next down chain agent. If not, give a negative response and say they do not 
+                qualify for a car loan.
             """,
-            "command": "aaosa_command"
+            "command": "- Ask a user if they have been continuously employed for the past 2 years",
+            "tools": []
         },
         {
-            "name": "CreditCheck_Agent",
-            "function": "aaosa_call",
+            "name": "Car_Credit_Score_Verification",
+            "function": {
+                "description": "Verify if the user has a credit score of at least 620 for car loan qualification.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": { "type": "string" }
+                    },
+                    "required": ["inquiry"]
+                }
+            },
             "instructions": """
-{instructions_prefix}
-You handle credit checks and financing options. You assess applicant's creditworthiness, recommend suitable loan plans, and coordinate with LoanApplication_Agent and banks.
-You provide a credit score and summary for use in loan approval.
-{aaosa_instructions}
+                You are part of a network of agents whose goal is to decide if a user 
+                qualifies for a car loan. Your task is to ask if the user has a credit score 
+                of at least 620. If so, provide an encouraging response and pass to the next
+                down chain agent. If their score is lower than 620, provide a negative response that they
+                do not qualify for a car loan.
             """,
-            "command": "aaosa_command"
+            "command": "- Ask the user what their credit score is",
+            "tools": []
         },
         {
-            "name": "Insurance_Agent",
-            "function": "aaosa_call",
+            "name": "Car_Primary_Use_Verification",
+            "function": {
+                "description": "Verify that the car loan is for a primary vehicle (not for business or secondary use).",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": { "type": "string" }
+                    },
+                    "required": ["inquiry"]
+                }
+            },
             "instructions": """
-{instructions_prefix}
-You provide car insurance options and requirements for the loan process.
-{aaosa_instructions}
+                You are part of a network of agents whose goal is to decide if a user 
+                qualifies for a car loan. Your task is to ask if the car is for their primary use.
+                If the user says it is for their primary use, provide an encouraging response and pass on to the next down chain agent.
+                If not, the user does not qualify for the car loan and this will stop here.
             """,
-            "command": "aaosa_command"
+            "command": "- Ask the user if the car is for their primary use",
+            "tools": []
         },
         {
-            "name": "Legal_Agent",
-            "function": "aaosa_call",
+            "name": "Car_DTI_Threshold_Verification",
+            "function": {
+                "description": "Verify that user's DTI threshold does not exceed 43% for car loan qualification.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": {"type": "string" }
+                    },
+                    "required": ["inquiry"]
+                }
+            },
             "instructions": """
-{instructions_prefix}
-You ensure legal compliance and manage legal documentation. You verify car ownership, and draft sales agreements and contracts.
-{aaosa_instructions}
+                Your name is 'Car_DTI_Threshold_Verification'.
+                You are part of a network of AI agents that decide if a user qualifies for a car loan.
+                You need to check if a user has a DTI ratio that does not exceed 43%. If the user doesn't know what a DTI ratio is or how to calculate it,
+                walk them through the steps or calculate it for them:
+
+                1. Determine your monthly debt payments: Add up all your recurring monthly debt payments, such as car loans, credit card minimum payments, etc.
+                2. Calculate your gross monthly income: This is your income before taxes and other deductions.
+                3. Divide your monthly debt by your gross monthly income: This will give you a decimal number.
+                4. Multiply by 100: This converts the decimal to a percentage, which is your DTI ratio.
+
+                Example:
+                    Monthly debt payments: $800, Gross monthly income: $2,500, and DTI: ($800 / $2,500) * 100 = 32.
+                If the user's DTI ratio exceeds 43%, return a negative response telling the user they can't apply for a car loan.
+                If the user's DTI threshold doesn't exceed 43%, then return a positive response and encouraging message and go to the next down chain agent.
             """,
-            "command": "aaosa_command"
+            "command": "- Ask a user to provide their DTI threshold or their debt and monthly income",
+            "tools": []
+        },
+        {
+            "name": "Car_Bank_Statement_Verification",
+            "function": {
+                "description": "Verify that the user can provide their bank statements for the last 60 days for car loan qualification.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": { "type": "string" }
+                    },
+                    "required": ["inquiry"]
+                }
+            },
+            "instructions": """
+                You are part of a network of agents whose goal is to decide if a user 
+                qualifies for a car loan. Your task is to ask if the user is able to 
+                provide their bank statements for the last 60 days. If the user can, provide a positive 
+                response and pass to the next down chain agent. If not, the user does not qualify for the car loan and 
+                provide a negative response.
+            """,
+            "command": "- Ask the user if they can provide bank statements for the last 60 days",
+            "tools": []
+        },
+        {
+            "name": "Car_Loan_Purpose",
+            "function": {
+                "description": "Ask the user what the purpose of the car loan is.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": { "type": "string" }
+                    },
+                    "required": ["inquiry"]
+                }
+            },
+            "instructions": """
+                You are part of a network of agents whose goal is to decide if a user 
+                qualifies for a car loan. Your task is to ask the user what the purpose of their 
+                car loan is. This question cannot disqualify a user from getting a car loan; it is simply for background
+                information.
+            """,
+            "command": "- Ask the user what the purpose of their car loan is",
+            "tools": []
+        },
+        {
+            "name": "Car_Identity_Verification",
+            "function": {
+                "description": "Verify that the user can provide a government-issued ID for car loan qualification.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": { "type": "string" }
+                    },
+                    "required": ["inquiry"]
+                }
+            },
+            "instructions": """
+                You are part of a network of agents whose goal is to decide if a user 
+                qualifies for a car loan. Your task is to ask if the user is able to 
+                provide a valid government-issued ID. If the user can provide a valid ID, then give a positive 
+                response and pass to the next down chain agent. If not, the user does not qualify for the car loan and 
+                provide a negative response.
+            """,
+            "command": "- Ask the user if they can provide a government-issued ID",
+            "tools": []
         }
     ]
 }
